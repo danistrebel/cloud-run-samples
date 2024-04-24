@@ -14,19 +14,15 @@
 
 apiVersion: serving.knative.dev/v1
 kind: Service
-# [START cloudrun_mc_hello_sidecar_step_metadata]
 metadata:
-  name: "MC_SERVICE_NAME"
+  name: "sidecar-hello"
   labels:
-    cloud.googleapis.com/location: "REGION"
+    cloud.googleapis.com/location: "europe-west1"
   annotations:
     # Required to use Cloud Run multi-containers (preview feature)
-    run.googleapis.com/launch-stage: BETA
     run.googleapis.com/description: sample tutorial service
     # Externally available
     run.googleapis.com/ingress: all
-# [END cloudrun_mc_hello_sidecar_step_metadata]
-# [START cloudrun_mc_hello_sidecar_step_deps]
 spec:
   template:
     metadata:
@@ -36,8 +32,6 @@ spec:
         # which depends on the hello container.
         # https://cloud.google.com/run/docs/configuring/containers#container-ordering
         run.googleapis.com/container-dependencies: "{nginx: [hello]}"
-    # [END cloudrun_mc_hello_sidecar_step_deps]
-    # [START cloudrun_mc_hello_sidecar_step_serving]
     spec:
       containers:
         # A) Serving ingress container "nginx" listening at PORT 8080
@@ -52,8 +46,8 @@ spec:
               containerPort: 8080
           resources:
             limits:
-              cpu: 500m
-              memory: 256Mi
+              cpu: 100m
+              memory: 128Mi
           # Referencing declared volume below,
           # Declaring volume to mount in current ingress container's filesystem
           # https://cloud.google.com/run/docs/reference/rest/v2/Container#volumemount
@@ -78,23 +72,20 @@ spec:
               value: "8888"
           resources:
             limits:
-              cpu: 1000m
-              memory: 512Mi
+              cpu: 500m
+              memory: 256Mi
           startupProbe:
             timeoutSeconds: 240
             periodSeconds: 240
             failureThreshold: 1
             tcpSocket:
               port: 8888
-        # [END cloudrun_mc_hello_sidecar_step_sidecar]
       # Named volume pointing to
       # nginx_config secret in secret manager
-      # [START cloudrun_mc_hello_sidecar_step_secret]
       volumes:
         - name: nginx-conf-secret
           secret:
             secretName: nginx_config
             items:
-              - key: latest
+              - key: '3'
                 path: default.conf
-      # [END cloudrun_mc_hello_sidecar_step_secret]
